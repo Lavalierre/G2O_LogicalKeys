@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.17)
 
-project(SqUnionModule)
+project(LogicalKeys)
 
 option(INSTALL_AFTER_BUILD "Run cmake --install separately for every target after each build. By default this option is set to OFF" OFF)
 
@@ -19,10 +19,10 @@ file(GLOB SRC
 	"src/sqmain.cpp"
 )
 
-add_library(SqUnionModule SHARED ${SRC} "src/workspace/logicalKeys.cpp" "src/workspace/sq_register.h" "src/workspace/sq_register.cpp" "src/workspace/logicalKeys.h")
-target_precompile_headers(SqUnionModule PRIVATE "src/pch.h")
+add_library(LogicalKeys SHARED ${SRC} "src/workspace/logicalKeys.cpp" "src/workspace/sq_register.h" "src/workspace/sq_register.cpp" "src/workspace/logicalKeys.h")
+target_precompile_headers(LogicalKeys PRIVATE "src/pch.h")
 
-target_include_directories(SqUnionModule
+target_include_directories(LogicalKeys
 	INTERFACE
 		"include/"
 	PRIVATE
@@ -32,14 +32,14 @@ target_include_directories(SqUnionModule
 add_subdirectory(dependencies)
 
 if (NOT ${GAME_PATH} STREQUAL "")
-	install(TARGETS SqUnionModule
+	install(TARGETS LogicalKeys
 			RUNTIME
 			  DESTINATION ${GAME_PATH}
 			  COMPONENT "clientModule"
 	)
 
 	if(INSTALL_AFTER_BUILD)
-		add_custom_command(TARGET SqUnionModule 
+		add_custom_command(TARGET LogicalKeys 
 			POST_BUILD
 				COMMAND ${CMAKE_COMMAND} --install ${CMAKE_CURRENT_BINARY_DIR} --component "clientModule"
 		)
@@ -47,14 +47,14 @@ if (NOT ${GAME_PATH} STREQUAL "")
 endif()
 
 if (NOT ${SERVER_PATH} STREQUAL "")
-	install(TARGETS SqUnionModule
+	install(TARGETS LogicalKeys
 			RUNTIME
 			  DESTINATION ${SERVER_PATH}
 			  COMPONENT "serverModule"
 	)
 
 	if(INSTALL_AFTER_BUILD)
-		add_custom_command(TARGET SqUnionModule 
+		add_custom_command(TARGET LogicalKeys 
 			POST_BUILD
 				COMMAND ${CMAKE_COMMAND} --install ${CMAKE_CURRENT_BINARY_DIR} --component "serverModule"
 		)
