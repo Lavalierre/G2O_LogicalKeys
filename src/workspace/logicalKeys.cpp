@@ -1,12 +1,7 @@
 #include "pch.h"
 #include "logicalKeys.h"
 
-std::map <std::string, int> m_OPT_KEY_MAP;
-
-void AddOptKeyValue(std::string key, int value)
-{
-	m_OPT_KEY_MAP.insert(std::pair<std::string, int>(key, value));
-}
+std::map <std::string, int> m_OPT_KEY_MAP;									// Storage of config keys
 
 std::string getConfigKeyByLogical(int logicalKey)
 {
@@ -26,28 +21,30 @@ int getLogicalKeyByConfig(std::string configKey)
 	}
 }
 
+void RegisterLogicalKey(std::string keyName, std::string configKey, int gameKey)
+{
+	SqRegisterValue(SqModule::vm, keyName.c_str(), gameKey);				// Registering logical key as global variable
+	m_OPT_KEY_MAP.insert(std::pair<std::string, int>(configKey, gameKey));	// Binding config key to logical key
+}
+
 //--------------------------------------------------------------------------------
 
+// bool return
 SQFUNC(bindLogicalKey)
 {
-	int iArgs = SqModule::api->gettop(vm) - 1;
-	if (iArgs < 2 && iArgs > 3)
-		return SqModule::api->throwerror(vm, "(bindLogicalKey) wrong number of parameters, expecting 2");
+	int top = sq_gettop(vm) - 1;
+	if (top > 3)
+		SqModule::Error("(bindLogicalKey) wrong number of parameters");
 
-	if (SqModule::api->gettype(vm, 2) != OT_INTEGER)
-		return SqModule::api->throwerror(vm, "(bindLogicalKey) wrong type of parameter 1, expecting 'integer'");
-	if (SqModule::api->gettype(vm, 3) != OT_INTEGER)
-		return SqModule::api->throwerror(vm, "(bindLogicalKey) wrong type of parameter 2, expecting 'integer'");
+	SQInteger logicalKey	= 0;
+	SQInteger gameKey		= 0;
+	SQInteger addGameKey	= 0;
 
-	SQInteger logicalKey;
-	SQInteger gameKey = 0;
-	SQInteger addGameKey = 0;
+	sq_getinteger(vm, 2, &logicalKey);
+	sq_getinteger(vm, 3, &gameKey);
 
-	SqModule::api->getinteger(vm, 2, &logicalKey);
-	SqModule::api->getinteger(vm, 3, &gameKey);
-
-	if (SqModule::api->gettype(vm, 4) == OT_INTEGER)
-		SqModule::api->getinteger(vm, 4, &addGameKey);
+	if (top == 3)
+		sq_getinteger(vm, 4, &addGameKey);
 
 	if ((int)logicalKey >= GAME_UP && (int)logicalKey <= GAME_LAME_HEAL)
 	{
@@ -61,64 +58,55 @@ SQFUNC(bindLogicalKey)
 
 		zoptions->WriteRaw("KEYS", getConfigKeyByLogical((int)logicalKey).c_str(), controlValueList.GetArray(), controlValueList.GetNumInList() << 1, FALSE);
 		zinput->BindKeys(0);
+
+		sq_pushbool(vm, TRUE);
 		return 1;
 	}
 
+	sq_pushbool(vm, FALSE);
 	return 0;
 }
 
+// bool return
 SQFUNC(unbindLogicalKey)
 {
-	int iArgs = SqModule::api->gettop(vm) - 1;
-	if (iArgs != 1)
-		return SqModule::api->throwerror(vm, "(unbindLogicalKey) wrong number of parameters, expecting 1");
-
-	if (SqModule::api->gettype(vm, -1) != OT_INTEGER)
-		return SqModule::api->throwerror(vm, "(unbindLogicalKey) wrong type of parameter 1, expecting 'integer'");
-
 	SQInteger logicalKey;
-	SqModule::api->getinteger(vm, -1, &logicalKey);
+	sq_getinteger(vm, -1, &logicalKey);
 
 	if ((int)logicalKey >= GAME_UP && (int)logicalKey <= GAME_LAME_HEAL)
 	{
 		zWORD buffer = 0x0000;
 		zoptions->WriteRaw("KEYS", getConfigKeyByLogical((int)logicalKey).c_str(), &buffer, sizeof(buffer), FALSE);
 		zinput->BindKeys(0);
+
+		sq_pushbool(vm, TRUE);
 		return 1;
 	}
 
+	sq_pushbool(vm, FALSE);
 	return 0;
 }
 
+// void return
 SQFUNC(defaultLogicalKeys)
 {
-	int iArgs = SqModule::api->gettop(vm) - 1;
-	if (iArgs != 1)
-		return SqModule::api->throwerror(vm, "(defaultLogicalKeys) wrong number of parameters, expecting 1");
-
-	if (SqModule::api->gettype(vm, -1) != OT_BOOL)
-		return SqModule::api->throwerror(vm, "(defaultLogicalKeys) wrong type of parameter 1, expecting 'bool'");
-
 	SQBool alternative;
-	SqModule::api->getbool(vm, -1, &alternative);
+	sq_getbool(vm, -1, &alternative);
 
 	for (auto it = m_OPT_KEY_MAP.begin(); it != m_OPT_KEY_MAP.end(); it++)
 		zoptions->RemoveEntry("KEYS", it->first.c_str());
-
+	
+	SqModule::Print("Bool: " + alternative);
 	zinput->BindKeys(alternative);
+
+	return 1;
 }
 
+// array / null return
 SQFUNC(getLogicalKey)
 {
-	int iArgs = SqModule::api->gettop(vm) - 1;
-	if (iArgs != 1)
-		return SqModule::api->throwerror(vm, "(getLogicalKey) wrong number of parameters, expecting 1");
-
-	if (SqModule::api->gettype(vm, -1) != OT_INTEGER)
-		return SqModule::api->throwerror(vm, "(getLogicalKey) wrong type of parameter 1, expecting 'integer'");
-
 	SQInteger logicalKey;
-	SqModule::api->getinteger(vm, -1, &logicalKey);
+	sq_getinteger(vm, -1, &logicalKey);
 
 	if ((int)logicalKey >= GAME_UP && (int)logicalKey <= GAME_LAME_HEAL)
 	{
@@ -126,81 +114,64 @@ SQFUNC(getLogicalKey)
 		controlValues.EmptyList();
 		zinput->GetBinding(logicalKey, controlValues);
 
-		SqModule::api->newarray(vm, 0);
+		sq_newarray(vm, 0);
 		for (int i = 0; i < controlValues.GetNumInList(); i++)
 		{
-			SqModule::api->pushinteger(vm, controlValues[i]);
-			SqModule::api->arrayappend(vm, -2);
+			sq_pushinteger(vm, controlValues[i]);
+			sq_arrayappend(vm, -2);
 		}
 
 		return 1;
 	}
 
+	sq_pushnull(vm);
 	return 0;
 }
 
-void InitLogicalKeys()
+void InitLogicalKeys(Sqrat::RootTable roottable)
 {
 	HSQUIRRELVM vm = SqModule::vm;
 
-	// Registering logical keys as global Squirrel constants
-	SqRegisterValue(vm, "GAME_LEFT",			GAME_LEFT);
-	SqRegisterValue(vm, "GAME_RIGHT",			GAME_RIGHT);
-	SqRegisterValue(vm, "GAME_UP",				GAME_UP);
-	SqRegisterValue(vm, "GAME_DOWN",			GAME_DOWN);
-	SqRegisterValue(vm, "GAME_ACTION",			GAME_ACTION);
-	SqRegisterValue(vm, "GAME_SLOW",			GAME_SLOW);
-	SqRegisterValue(vm, "GAME_ACTION2",			GAME_ACTION2);
-	SqRegisterValue(vm, "GAME_WEAPON",			GAME_WEAPON);
-	SqRegisterValue(vm, "GAME_SMOVE",			GAME_SMOVE);
-	SqRegisterValue(vm, "GAME_SMOVE2",			GAME_SMOVE2);
-	SqRegisterValue(vm, "GAME_SHIFT",			GAME_SHIFT);
-	SqRegisterValue(vm, "GAME_END",				GAME_END);
-	SqRegisterValue(vm, "GAME_INVENTORY",		GAME_INVENTORY);
-	SqRegisterValue(vm, "GAME_LOOK",			GAME_LOOK);
-	SqRegisterValue(vm, "GAME_SNEAK",			GAME_SNEAK);
-	SqRegisterValue(vm, "GAME_STRAFELEFT",		GAME_STRAFELEFT);
-	SqRegisterValue(vm, "GAME_STRAFERIGHT",		GAME_STRAFERIGHT);
-	SqRegisterValue(vm, "GAME_SCREEN_STATUS",	GAME_SCREEN_STATUS);
-	SqRegisterValue(vm, "GAME_SCREEN_LOG",		GAME_SCREEN_LOG);
-	SqRegisterValue(vm, "GAME_SCREEN_MAP",		GAME_SCREEN_MAP);
-	SqRegisterValue(vm, "GAME_LOOK_FP",			GAME_LOOK_FP);
-	SqRegisterValue(vm, "GAME_LOCK_TARGET",		GAME_LOCK_TARGET);
-	SqRegisterValue(vm, "GAME_PARADE",			GAME_PARADE);
-	SqRegisterValue(vm, "GAME_ACTIONLEFT",		GAME_ACTIONLEFT);
-	SqRegisterValue(vm, "GAME_ACTIONRIGHT",		GAME_ACTIONRIGHT);
-	SqRegisterValue(vm, "GAME_LAME_POTION",		GAME_LAME_POTION);
-	SqRegisterValue(vm, "GAME_LAME_HEAL",		GAME_LAME_HEAL);
 
-	// Map for Gothic.ini controls section
-	AddOptKeyValue("keyEnd",					GAME_END);
-	AddOptKeyValue("keyHeal",					GAME_LAME_HEAL);
-	AddOptKeyValue("keyPotion",					GAME_LAME_POTION);
-	AddOptKeyValue("keyLockTaget",				GAME_LOCK_TARGET);
-	AddOptKeyValue("keyParade",					GAME_PARADE);
-	AddOptKeyValue("keyActionRight",			GAME_ACTIONRIGHT);
-	AddOptKeyValue("keyActionLeft",				GAME_ACTIONLEFT);
-	AddOptKeyValue("keyUp",						GAME_UP);
-	AddOptKeyValue("keyDown",					GAME_DOWN);
-	AddOptKeyValue("keyLeft",					GAME_LEFT);
-	AddOptKeyValue("keyRight",					GAME_RIGHT);
-	AddOptKeyValue("keyStrafeLeft",				GAME_STRAFELEFT);
-	AddOptKeyValue("keyStrafeRight",			GAME_STRAFERIGHT);
-	AddOptKeyValue("keyAction",					GAME_ACTION);
-	AddOptKeyValue("keySlow",					GAME_SLOW);
-	AddOptKeyValue("keySMove",					GAME_SMOVE);
-	AddOptKeyValue("keyWeapon",					GAME_WEAPON);
-	AddOptKeyValue("keySneak",					GAME_SNEAK);
-	AddOptKeyValue("keyLook",					GAME_LOOK);
-	AddOptKeyValue("keyLookFP",					GAME_LOOK_FP);
-	AddOptKeyValue("keyInventory",				GAME_INVENTORY);
-	AddOptKeyValue("keyShowStatus",				GAME_SCREEN_STATUS);
-	AddOptKeyValue("keyShowLog",				GAME_SCREEN_LOG);
-	AddOptKeyValue("keyShowMap",				GAME_SCREEN_MAP);
+	// Registering logical keys for config and global variables
+
+	RegisterLogicalKey("GAME_LAME_HEAL",		"keyHeal",			GAME_LAME_HEAL);			// Heal potion hotkey
+	RegisterLogicalKey("GAME_LAME_POTION",		"keyPotion",		GAME_LAME_POTION);			// Mana potion hotkey
+
+	RegisterLogicalKey("GAME_LOCK_TARGET",		"keyLockTarget",	GAME_LOCK_TARGET);
+	RegisterLogicalKey("GAME_LOOK",				"keyLook",			GAME_LOOK);
+	RegisterLogicalKey("GAME_LOOK_FP",			"keyLookFP",		GAME_LOOK_FP);				// Firstperson mode hotkey
+
+	RegisterLogicalKey("GAME_PARADE",			"keyParade",		GAME_PARADE);
+	RegisterLogicalKey("GAME_WEAPON",			"keyWeapon",		GAME_WEAPON);
+
+	RegisterLogicalKey("GAME_ACTIONRIGHT",		"keyActionRight",	GAME_ACTIONRIGHT);			// G2 controls stuff
+	RegisterLogicalKey("GAME_ACTIONLEFT",		"keyActionLeft",	GAME_ACTIONLEFT);			// G2 controls stuff
+	RegisterLogicalKey("GAME_ACTION",			"keyAction",		GAME_ACTION);
+
+	RegisterLogicalKey("GAME_UP",				"keyUp",			GAME_UP);
+	RegisterLogicalKey("GAME_DOWN",				"keyDown",			GAME_DOWN);
+	RegisterLogicalKey("GAME_RIGHT",			"keyRight",			GAME_RIGHT);
+	RegisterLogicalKey("GAME_LEFT",				"keyLeft",			GAME_LEFT);
+
+	RegisterLogicalKey("GAME_STRAFELEFT",		"keyStrafeLeft",	GAME_STRAFELEFT);
+	RegisterLogicalKey("GAME_STRAFERIGHT",		"keyStrafeRight",	GAME_STRAFERIGHT);
+
+	RegisterLogicalKey("GAME_SLOW",				"keySlow",			GAME_SLOW);					// Walk mode
+	RegisterLogicalKey("GAME_SMOVE",			"keySMove",			GAME_SMOVE);				// Special Move / Jump
+	RegisterLogicalKey("GAME_SNEAK",			"keySneak",			GAME_SNEAK);
+	
+	RegisterLogicalKey("GAME_INVENTORY",		"keyInventory",		GAME_INVENTORY);
+	RegisterLogicalKey("GAME_SCREEN_STATUS",	"keyShowStatus",	GAME_SCREEN_STATUS);
+	RegisterLogicalKey("GAME_SCREEN_LOG",		"keyShowLog",		GAME_SCREEN_LOG);
+	RegisterLogicalKey("GAME_SCREEN_MAP",		"keyShowMap",		GAME_SCREEN_MAP);
+	RegisterLogicalKey("GAME_END",				"keyEnd",			GAME_END);
+
 
 	// Registering squirrel functions
-	SqRegisterFunction(vm, "bindLogicalKey",		bindLogicalKey);
-	SqRegisterFunction(vm, "unbindLogicalKey",		unbindLogicalKey);
-	SqRegisterFunction(vm, "defaultLogicalKeys",	defaultLogicalKeys);
-	SqRegisterFunction(vm, "getLogicalKey",			getLogicalKey);
+
+	roottable.SquirrelFunc("bindLogicalKey",		bindLogicalKey,			-4,	".iii");
+	roottable.SquirrelFunc("ungindLogicalKey",		unbindLogicalKey,		-2, ".i");
+	roottable.SquirrelFunc("defaultLogicalKeys",	defaultLogicalKeys,		-2, ".b");
+	roottable.SquirrelFunc("getLogicalKey",			getLogicalKey,			-2, ".i");
 }
