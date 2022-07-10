@@ -28,7 +28,7 @@ int getLogicalKeyByConfig(std::string configKey)
 
 //--------------------------------------------------------------------------------
 
-SQFUNC(bindLogicalKey)
+SQInteger bindLogicalKey(HSQUIRRELVM vm)
 {
 	int iArgs = SqModule::api->gettop(vm) - 1;
 	if (iArgs < 2 && iArgs > 3)
@@ -67,7 +67,7 @@ SQFUNC(bindLogicalKey)
 	return 0;
 }
 
-SQFUNC(unbindLogicalKey)
+SQInteger unbindLogicalKey(HSQUIRRELVM vm)
 {
 	int iArgs = SqModule::api->gettop(vm) - 1;
 	if (iArgs != 1)
@@ -90,7 +90,7 @@ SQFUNC(unbindLogicalKey)
 	return 0;
 }
 
-SQFUNC(defaultLogicalKeys)
+SQInteger defaultLogicalKeys(HSQUIRRELVM vm)
 {
 	int iArgs = SqModule::api->gettop(vm) - 1;
 	if (iArgs != 1)
@@ -108,7 +108,7 @@ SQFUNC(defaultLogicalKeys)
 	zinput->BindKeys(alternative);
 }
 
-SQFUNC(getLogicalKey)
+SQInteger getLogicalKey(HSQUIRRELVM vm)
 {
 	int iArgs = SqModule::api->gettop(vm) - 1;
 	if (iArgs != 1)
@@ -141,36 +141,39 @@ SQFUNC(getLogicalKey)
 
 void InitLogicalKeys()
 {
-	HSQUIRRELVM vm = SqModule::vm;
+	using namespace SqModule;
+
+	Sqrat::RootTable roottable(vm);
+	Sqrat::ConstTable consttable(vm);
 
 	// Registering logical keys as global Squirrel constants
-	SqRegisterValue(vm, "GAME_LEFT",			GAME_LEFT);
-	SqRegisterValue(vm, "GAME_RIGHT",			GAME_RIGHT);
-	SqRegisterValue(vm, "GAME_UP",				GAME_UP);
-	SqRegisterValue(vm, "GAME_DOWN",			GAME_DOWN);
-	SqRegisterValue(vm, "GAME_ACTION",			GAME_ACTION);
-	SqRegisterValue(vm, "GAME_SLOW",			GAME_SLOW);
-	SqRegisterValue(vm, "GAME_ACTION2",			GAME_ACTION2);
-	SqRegisterValue(vm, "GAME_WEAPON",			GAME_WEAPON);
-	SqRegisterValue(vm, "GAME_SMOVE",			GAME_SMOVE);
-	SqRegisterValue(vm, "GAME_SMOVE2",			GAME_SMOVE2);
-	SqRegisterValue(vm, "GAME_SHIFT",			GAME_SHIFT);
-	SqRegisterValue(vm, "GAME_END",				GAME_END);
-	SqRegisterValue(vm, "GAME_INVENTORY",		GAME_INVENTORY);
-	SqRegisterValue(vm, "GAME_LOOK",			GAME_LOOK);
-	SqRegisterValue(vm, "GAME_SNEAK",			GAME_SNEAK);
-	SqRegisterValue(vm, "GAME_STRAFELEFT",		GAME_STRAFELEFT);
-	SqRegisterValue(vm, "GAME_STRAFERIGHT",		GAME_STRAFERIGHT);
-	SqRegisterValue(vm, "GAME_SCREEN_STATUS",	GAME_SCREEN_STATUS);
-	SqRegisterValue(vm, "GAME_SCREEN_LOG",		GAME_SCREEN_LOG);
-	SqRegisterValue(vm, "GAME_SCREEN_MAP",		GAME_SCREEN_MAP);
-	SqRegisterValue(vm, "GAME_LOOK_FP",			GAME_LOOK_FP);
-	SqRegisterValue(vm, "GAME_LOCK_TARGET",		GAME_LOCK_TARGET);
-	SqRegisterValue(vm, "GAME_PARADE",			GAME_PARADE);
-	SqRegisterValue(vm, "GAME_ACTIONLEFT",		GAME_ACTIONLEFT);
-	SqRegisterValue(vm, "GAME_ACTIONRIGHT",		GAME_ACTIONRIGHT);
-	SqRegisterValue(vm, "GAME_LAME_POTION",		GAME_LAME_POTION);
-	SqRegisterValue(vm, "GAME_LAME_HEAL",		GAME_LAME_HEAL);
+	consttable.Const("GAME_LEFT",				GAME_LEFT);
+	consttable.Const("GAME_RIGHT",				GAME_RIGHT);
+	consttable.Const("GAME_UP",					GAME_UP);
+	consttable.Const("GAME_DOWN",				GAME_DOWN);
+	consttable.Const("GAME_ACTION",				GAME_ACTION);
+	consttable.Const("GAME_SLOW",				GAME_SLOW);
+	consttable.Const("GAME_ACTION2",			GAME_ACTION2);
+	consttable.Const("GAME_WEAPON",				GAME_WEAPON);
+	consttable.Const("GAME_SMOVE",				GAME_SMOVE);
+	consttable.Const("GAME_SMOVE2",				GAME_SMOVE2);
+	consttable.Const("GAME_SHIFT",				GAME_SHIFT);
+	consttable.Const("GAME_END",				GAME_END);
+	consttable.Const("GAME_INVENTORY",			GAME_INVENTORY);
+	consttable.Const("GAME_LOOK",				GAME_LOOK);
+	consttable.Const("GAME_SNEAK",				GAME_SNEAK);
+	consttable.Const("GAME_STRAFELEFT",			GAME_STRAFELEFT);
+	consttable.Const("GAME_STRAFERIGHT",		GAME_STRAFERIGHT);
+	consttable.Const("GAME_SCREEN_STATUS",		GAME_SCREEN_STATUS);
+	consttable.Const("GAME_SCREEN_LOG",			GAME_SCREEN_LOG);
+	consttable.Const("GAME_SCREEN_MAP",			GAME_SCREEN_MAP);
+	consttable.Const("GAME_LOOK_FP",			GAME_LOOK_FP);
+	consttable.Const("GAME_LOCK_TARGET",		GAME_LOCK_TARGET);
+	consttable.Const("GAME_PARADE",				GAME_PARADE);
+	consttable.Const("GAME_ACTIONLEFT",			GAME_ACTIONLEFT);
+	consttable.Const("GAME_ACTIONRIGHT",		GAME_ACTIONRIGHT);
+	consttable.Const("GAME_LAME_POTION",		GAME_LAME_POTION);
+	consttable.Const("GAME_LAME_HEAL",			GAME_LAME_HEAL);
 
 	// Map for Gothic.ini controls section
 	AddOptKeyValue("keyEnd",					GAME_END);
@@ -199,8 +202,8 @@ void InitLogicalKeys()
 	AddOptKeyValue("keyShowMap",				GAME_SCREEN_MAP);
 
 	// Registering squirrel functions
-	SqRegisterFunction(vm, "bindLogicalKey",		bindLogicalKey);
-	SqRegisterFunction(vm, "unbindLogicalKey",		unbindLogicalKey);
-	SqRegisterFunction(vm, "defaultLogicalKeys",	defaultLogicalKeys);
-	SqRegisterFunction(vm, "getLogicalKey",			getLogicalKey);
+	roottable.SquirrelFunc("bindLogicalKey",		bindLogicalKey);
+	roottable.SquirrelFunc("unbindLogicalKey",		unbindLogicalKey);
+	roottable.SquirrelFunc("defaultLogicalKeys",	defaultLogicalKeys);
+	roottable.SquirrelFunc("getLogicalKey",			getLogicalKey);
 }
