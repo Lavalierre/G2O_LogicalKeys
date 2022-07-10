@@ -33,6 +33,7 @@ void RegisterLogicalKey(std::string keyName, std::string configKey, int gameKey)
 
 //--------------------------------------------------------------------------------
 
+// bool return
 SQInteger bindLogicalKey(HSQUIRRELVM vm)
 {
 	SQInteger top = sq_gettop(vm);
@@ -73,6 +74,7 @@ SQInteger bindLogicalKey(HSQUIRRELVM vm)
 	return 0;
 }
 
+// bool return
 SQInteger unbindLogicalKey(HSQUIRRELVM vm)
 {
 	SQInteger logicalKey;
@@ -94,6 +96,7 @@ SQInteger unbindLogicalKey(HSQUIRRELVM vm)
 	return 0;
 }
 
+// void return
 SQInteger defaultLogicalKeys(HSQUIRRELVM vm)
 {
 	SQBool alternative;
@@ -107,6 +110,7 @@ SQInteger defaultLogicalKeys(HSQUIRRELVM vm)
 	return 1;
 }
 
+// array / null return
 SQInteger getLogicalKey(HSQUIRRELVM vm)
 {
 	SQInteger logicalKey;
