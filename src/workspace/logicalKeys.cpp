@@ -26,6 +26,8 @@ int getLogicalKeyByConfig(std::string configKey)
 	}
 }
 
+//--------------------------------------------------------------------------------
+
 SQFUNC(bindLogicalKey)
 {
 	int iArgs = SqModule::api->gettop(vm) - 1;
@@ -110,10 +112,10 @@ SQFUNC(getLogicalKey)
 {
 	int iArgs = SqModule::api->gettop(vm) - 1;
 	if (iArgs != 1)
-		return SqModule::api->throwerror(vm, "() wrong number of parameters, expecting 1");
+		return SqModule::api->throwerror(vm, "(getLogicalKey) wrong number of parameters, expecting 1");
 
 	if (SqModule::api->gettype(vm, -1) != OT_INTEGER)
-		return SqModule::api->throwerror(vm, "(unbindLogicalKey) wrong type of parameter 1, expecting 'integer'");
+		return SqModule::api->throwerror(vm, "(getLogicalKey) wrong type of parameter 1, expecting 'integer'");
 
 	SQInteger logicalKey;
 	SqModule::api->getinteger(vm, -1, &logicalKey);
