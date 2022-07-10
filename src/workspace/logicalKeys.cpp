@@ -96,7 +96,6 @@ SQFUNC(defaultLogicalKeys)
 	for (auto it = m_OPT_KEY_MAP.begin(); it != m_OPT_KEY_MAP.end(); it++)
 		zoptions->RemoveEntry("KEYS", it->first.c_str());
 	
-	SqModule::Print("Bool: " + alternative);
 	zinput->BindKeys(alternative);
 
 	return 1;
