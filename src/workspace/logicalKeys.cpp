@@ -10,6 +10,8 @@ std::string getConfigKeyByLogical(int logicalKey)
 		if (it->second == logicalKey)
 			return it->first;
 	}
+
+	return "";
 }
 
 int getLogicalKeyByConfig(std::string configKey)
@@ -19,22 +21,24 @@ int getLogicalKeyByConfig(std::string configKey)
 		if (it->first == configKey)
 			return it->second;
 	}
+
+	return -1;
 }
 
 void RegisterLogicalKey(std::string keyName, std::string configKey, int gameKey)
 {
-	SqRegisterValue(SqModule::vm, keyName.c_str(), gameKey);				// Registering logical key as global variable
+	Sqrat::ConstTable().Const(keyName.c_str(), gameKey);					// Registering logical key as global variable
 	m_OPT_KEY_MAP.insert(std::pair<std::string, int>(configKey, gameKey));	// Binding config key to logical key
 }
 
 //--------------------------------------------------------------------------------
 
 // bool return
-SQFUNC(bindLogicalKey)
+SQInteger bindLogicalKey(HSQUIRRELVM vm)
 {
-	int top = sq_gettop(vm) - 1;
-	if (top > 3)
-		SqModule::Error("(bindLogicalKey) wrong number of parameters");
+	SQInteger top = sq_gettop(vm);
+	if (top > 4)
+		return sq_throwerror(vm, "wrong number of parameters");
 
 	SQInteger logicalKey	= 0;
 	SQInteger gameKey		= 0;
@@ -43,23 +47,26 @@ SQFUNC(bindLogicalKey)
 	sq_getinteger(vm, 2, &logicalKey);
 	sq_getinteger(vm, 3, &gameKey);
 
-	if (top == 3)
+	if (top == 4)
 		sq_getinteger(vm, 4, &addGameKey);
 
-	if ((int)logicalKey >= GAME_UP && (int)logicalKey <= GAME_LAME_HEAL)
+	if (logicalKey >= GAME_UP && logicalKey <= GAME_LAME_HEAL)
 	{
-		zCArray<zWORD> controlValueList;
-		controlValueList.EmptyList();
+		std::string configKey = getConfigKeyByLogical(logicalKey);
+		if (configKey != "")
+		{
+			zCArray<zWORD> controlValueList;
+			controlValueList.EmptyList();
 
-		if (logicalKey != 0)
 			controlValueList.Insert(gameKey);
-		if (addGameKey != 0)
-			controlValueList.Insert(addGameKey);
 
-		zoptions->WriteRaw("KEYS", getConfigKeyByLogical((int)logicalKey).c_str(), controlValueList.GetArray(), controlValueList.GetNumInList() << 1, FALSE);
-		zinput->BindKeys(0);
+			if (addGameKey != 0)
+				controlValueList.Insert(addGameKey);
 
-		sq_pushbool(vm, TRUE);
+			zoptions->WriteRaw("KEYS", configKey.c_str(), controlValueList.GetArray(), controlValueList.GetNumInList() << 1, FALSE);
+			zinput->BindKeys(0);
+		}
+    
 		return 1;
 	}
 
@@ -68,18 +75,20 @@ SQFUNC(bindLogicalKey)
 }
 
 // bool return
-SQFUNC(unbindLogicalKey)
+SQInteger unbindLogicalKey(HSQUIRRELVM vm)
 {
 	SQInteger logicalKey;
-	sq_getinteger(vm, -1, &logicalKey);
+	sq_getinteger(vm, 2, &logicalKey);
 
-	if ((int)logicalKey >= GAME_UP && (int)logicalKey <= GAME_LAME_HEAL)
+	if (logicalKey >= GAME_UP && logicalKey <= GAME_LAME_HEAL)
 	{
-		zWORD buffer = 0x0000;
-		zoptions->WriteRaw("KEYS", getConfigKeyByLogical((int)logicalKey).c_str(), &buffer, sizeof(buffer), FALSE);
-		zinput->BindKeys(0);
-
-		sq_pushbool(vm, TRUE);
+		std::string configKey = getConfigKeyByLogical(logicalKey);
+		if (configKey != "")
+		{
+			zWORD buffer = 0x0000;
+			zoptions->WriteRaw("KEYS", configKey.c_str(), &buffer, sizeof(buffer), FALSE);
+			zinput->BindKeys(0);
+		}
 		return 1;
 	}
 
@@ -88,7 +97,7 @@ SQFUNC(unbindLogicalKey)
 }
 
 // void return
-SQFUNC(defaultLogicalKeys)
+SQInteger defaultLogicalKeys(HSQUIRRELVM vm)
 {
 	SQBool alternative;
 	sq_getbool(vm, -1, &alternative);
@@ -102,12 +111,12 @@ SQFUNC(defaultLogicalKeys)
 }
 
 // array / null return
-SQFUNC(getLogicalKey)
+SQInteger getLogicalKey(HSQUIRRELVM vm)
 {
 	SQInteger logicalKey;
-	sq_getinteger(vm, -1, &logicalKey);
+	sq_getinteger(vm, 2, &logicalKey);
 
-	if ((int)logicalKey >= GAME_UP && (int)logicalKey <= GAME_LAME_HEAL)
+	if (logicalKey >= GAME_UP && logicalKey <= GAME_LAME_HEAL)
 	{
 		zCArray<zWORD> controlValues;
 		controlValues.EmptyList();
@@ -129,11 +138,9 @@ SQFUNC(getLogicalKey)
 
 void InitLogicalKeys(Sqrat::RootTable roottable)
 {
-	HSQUIRRELVM vm = SqModule::vm;
+	using namespace SqModule;
 
-
-	// Registering logical keys for config and global variables
-
+	// Registering logical keys for config and squirrel constants
 	RegisterLogicalKey("GAME_LAME_HEAL",		"keyHeal",			GAME_LAME_HEAL);			// Heal potion hotkey
 	RegisterLogicalKey("GAME_LAME_POTION",		"keyPotion",		GAME_LAME_POTION);			// Mana potion hotkey
 
@@ -159,18 +166,16 @@ void InitLogicalKeys(Sqrat::RootTable roottable)
 	RegisterLogicalKey("GAME_SLOW",				"keySlow",			GAME_SLOW);					// Walk mode
 	RegisterLogicalKey("GAME_SMOVE",			"keySMove",			GAME_SMOVE);				// Special Move / Jump
 	RegisterLogicalKey("GAME_SNEAK",			"keySneak",			GAME_SNEAK);
-	
+
 	RegisterLogicalKey("GAME_INVENTORY",		"keyInventory",		GAME_INVENTORY);
 	RegisterLogicalKey("GAME_SCREEN_STATUS",	"keyShowStatus",	GAME_SCREEN_STATUS);
 	RegisterLogicalKey("GAME_SCREEN_LOG",		"keyShowLog",		GAME_SCREEN_LOG);
 	RegisterLogicalKey("GAME_SCREEN_MAP",		"keyShowMap",		GAME_SCREEN_MAP);
 	RegisterLogicalKey("GAME_END",				"keyEnd",			GAME_END);
 
-
 	// Registering squirrel functions
-
-	roottable.SquirrelFunc("bindLogicalKey",		bindLogicalKey,			-4,	".iii");
-	roottable.SquirrelFunc("ungindLogicalKey",		unbindLogicalKey,		-2, ".i");
-	roottable.SquirrelFunc("defaultLogicalKeys",	defaultLogicalKeys,		-2, ".b");
-	roottable.SquirrelFunc("getLogicalKey",			getLogicalKey,			-2, ".i");
+	roottable.SquirrelFunc("bindLogicalKey",		bindLogicalKey,			-3,		".iii");
+	roottable.SquirrelFunc("unbindLogicalKey",		unbindLogicalKey,		2,		".i");
+	roottable.SquirrelFunc("defaultLogicalKeys",	defaultLogicalKeys,		2,		".b");
+	roottable.SquirrelFunc("getLogicalKey",			getLogicalKey,			2,		".i");
 }

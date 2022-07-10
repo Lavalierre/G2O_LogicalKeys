@@ -15,11 +15,14 @@ file(GLOB SRC
 	"src/g2o/*.h"
 	"src/g2o/*.cpp"
 
+	"src/workspace/logicalKeys.h"
+	"src/workspace/logicalKeys.cpp"
+
 	"src/pch.h"
 	"src/sqmain.cpp"
 )
 
-add_library(LogicalKeys SHARED ${SRC} "src/workspace/logicalKeys.cpp" "src/workspace/sq_register.h" "src/workspace/sq_register.cpp" "src/workspace/logicalKeys.h")
+add_library(LogicalKeys SHARED ${SRC})
 target_precompile_headers(LogicalKeys PRIVATE "src/pch.h")
 
 target_include_directories(LogicalKeys
