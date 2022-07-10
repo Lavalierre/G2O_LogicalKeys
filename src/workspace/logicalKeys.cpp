@@ -27,7 +27,7 @@ int getLogicalKeyByConfig(std::string configKey)
 
 void RegisterLogicalKey(std::string keyName, std::string configKey, int gameKey)
 {
-	SqRegisterValue(SqModule::vm, keyName.c_str(), gameKey);				// Registering logical key as global variable
+	Sqrat::ConstTable().Const(keyName.c_str(), gameKey);					// Registering logical key as global variable
 	m_OPT_KEY_MAP.insert(std::pair<std::string, int>(configKey, gameKey));	// Binding config key to logical key
 }
 
@@ -136,67 +136,42 @@ void InitLogicalKeys(Sqrat::RootTable roottable)
 {
 	using namespace SqModule;
 
-	Sqrat::RootTable roottable(vm);
-	Sqrat::ConstTable consttable(vm);
+	// Registering logical keys for config and squirrel constants
+	RegisterLogicalKey("GAME_LAME_HEAL",		"keyHeal",			GAME_LAME_HEAL);			// Heal potion hotkey
+	RegisterLogicalKey("GAME_LAME_POTION",		"keyPotion",		GAME_LAME_POTION);			// Mana potion hotkey
 
-	// Registering logical keys as global Squirrel constants
-	consttable.Const("GAME_LEFT",				GAME_LEFT);
-	consttable.Const("GAME_RIGHT",				GAME_RIGHT);
-	consttable.Const("GAME_UP",					GAME_UP);
-	consttable.Const("GAME_DOWN",				GAME_DOWN);
-	consttable.Const("GAME_ACTION",				GAME_ACTION);
-	consttable.Const("GAME_SLOW",				GAME_SLOW);
-	consttable.Const("GAME_ACTION2",			GAME_ACTION2);
-	consttable.Const("GAME_WEAPON",				GAME_WEAPON);
-	consttable.Const("GAME_SMOVE",				GAME_SMOVE);
-	consttable.Const("GAME_SMOVE2",				GAME_SMOVE2);
-	consttable.Const("GAME_SHIFT",				GAME_SHIFT);
-	consttable.Const("GAME_END",				GAME_END);
-	consttable.Const("GAME_INVENTORY",			GAME_INVENTORY);
-	consttable.Const("GAME_LOOK",				GAME_LOOK);
-	consttable.Const("GAME_SNEAK",				GAME_SNEAK);
-	consttable.Const("GAME_STRAFELEFT",			GAME_STRAFELEFT);
-	consttable.Const("GAME_STRAFERIGHT",		GAME_STRAFERIGHT);
-	consttable.Const("GAME_SCREEN_STATUS",		GAME_SCREEN_STATUS);
-	consttable.Const("GAME_SCREEN_LOG",			GAME_SCREEN_LOG);
-	consttable.Const("GAME_SCREEN_MAP",			GAME_SCREEN_MAP);
-	consttable.Const("GAME_LOOK_FP",			GAME_LOOK_FP);
-	consttable.Const("GAME_LOCK_TARGET",		GAME_LOCK_TARGET);
-	consttable.Const("GAME_PARADE",				GAME_PARADE);
-	consttable.Const("GAME_ACTIONLEFT",			GAME_ACTIONLEFT);
-	consttable.Const("GAME_ACTIONRIGHT",		GAME_ACTIONRIGHT);
-	consttable.Const("GAME_LAME_POTION",		GAME_LAME_POTION);
-	consttable.Const("GAME_LAME_HEAL",			GAME_LAME_HEAL);
+	RegisterLogicalKey("GAME_LOCK_TARGET",		"keyLockTarget",	GAME_LOCK_TARGET);
+	RegisterLogicalKey("GAME_LOOK",				"keyLook",			GAME_LOOK);
+	RegisterLogicalKey("GAME_LOOK_FP",			"keyLookFP",		GAME_LOOK_FP);				// Firstperson mode hotkey
 
-	// Map for Gothic.ini controls section
-	AddOptKeyValue("keyEnd",					GAME_END);
-	AddOptKeyValue("keyHeal",					GAME_LAME_HEAL);
-	AddOptKeyValue("keyPotion",					GAME_LAME_POTION);
-	AddOptKeyValue("keyLockTaget",				GAME_LOCK_TARGET);
-	AddOptKeyValue("keyParade",					GAME_PARADE);
-	AddOptKeyValue("keyActionRight",			GAME_ACTIONRIGHT);
-	AddOptKeyValue("keyActionLeft",				GAME_ACTIONLEFT);
-	AddOptKeyValue("keyUp",						GAME_UP);
-	AddOptKeyValue("keyDown",					GAME_DOWN);
-	AddOptKeyValue("keyLeft",					GAME_LEFT);
-	AddOptKeyValue("keyRight",					GAME_RIGHT);
-	AddOptKeyValue("keyStrafeLeft",				GAME_STRAFELEFT);
-	AddOptKeyValue("keyStrafeRight",			GAME_STRAFERIGHT);
-	AddOptKeyValue("keyAction",					GAME_ACTION);
-	AddOptKeyValue("keySlow",					GAME_SLOW);
-	AddOptKeyValue("keySMove",					GAME_SMOVE);
-	AddOptKeyValue("keyWeapon",					GAME_WEAPON);
-	AddOptKeyValue("keySneak",					GAME_SNEAK);
-	AddOptKeyValue("keyLook",					GAME_LOOK);
-	AddOptKeyValue("keyLookFP",					GAME_LOOK_FP);
-	AddOptKeyValue("keyInventory",				GAME_INVENTORY);
-	AddOptKeyValue("keyShowStatus",				GAME_SCREEN_STATUS);
-	AddOptKeyValue("keyShowLog",				GAME_SCREEN_LOG);
-	AddOptKeyValue("keyShowMap",				GAME_SCREEN_MAP);
+	RegisterLogicalKey("GAME_PARADE",			"keyParade",		GAME_PARADE);
+	RegisterLogicalKey("GAME_WEAPON",			"keyWeapon",		GAME_WEAPON);
+
+	RegisterLogicalKey("GAME_ACTIONRIGHT",		"keyActionRight",	GAME_ACTIONRIGHT);			// G2 controls stuff
+	RegisterLogicalKey("GAME_ACTIONLEFT",		"keyActionLeft",	GAME_ACTIONLEFT);			// G2 controls stuff
+	RegisterLogicalKey("GAME_ACTION",			"keyAction",		GAME_ACTION);
+
+	RegisterLogicalKey("GAME_UP",				"keyUp",			GAME_UP);
+	RegisterLogicalKey("GAME_DOWN",				"keyDown",			GAME_DOWN);
+	RegisterLogicalKey("GAME_RIGHT",			"keyRight",			GAME_RIGHT);
+	RegisterLogicalKey("GAME_LEFT",				"keyLeft",			GAME_LEFT);
+
+	RegisterLogicalKey("GAME_STRAFELEFT",		"keyStrafeLeft",	GAME_STRAFELEFT);
+	RegisterLogicalKey("GAME_STRAFERIGHT",		"keyStrafeRight",	GAME_STRAFERIGHT);
+
+	RegisterLogicalKey("GAME_SLOW",				"keySlow",			GAME_SLOW);					// Walk mode
+	RegisterLogicalKey("GAME_SMOVE",			"keySMove",			GAME_SMOVE);				// Special Move / Jump
+	RegisterLogicalKey("GAME_SNEAK",			"keySneak",			GAME_SNEAK);
+
+	RegisterLogicalKey("GAME_INVENTORY",		"keyInventory",		GAME_INVENTORY);
+	RegisterLogicalKey("GAME_SCREEN_STATUS",	"keyShowStatus",	GAME_SCREEN_STATUS);
+	RegisterLogicalKey("GAME_SCREEN_LOG",		"keyShowLog",		GAME_SCREEN_LOG);
+	RegisterLogicalKey("GAME_SCREEN_MAP",		"keyShowMap",		GAME_SCREEN_MAP);
+	RegisterLogicalKey("GAME_END",				"keyEnd",			GAME_END);
 
 	// Registering squirrel functions
-	roottable.SquirrelFunc("bindLogicalKey", bindLogicalKey, -3, ".iii");
-	roottable.SquirrelFunc("unbindLogicalKey", unbindLogicalKey, 2, ".i");
-	roottable.SquirrelFunc("defaultLogicalKeys", defaultLogicalKeys, 2, ".b");
-	roottable.SquirrelFunc("getLogicalKey", getLogicalKey, 2, ".i");
+	roottable.SquirrelFunc("bindLogicalKey",		bindLogicalKey,			-3,		".iii");
+	roottable.SquirrelFunc("unbindLogicalKey",		unbindLogicalKey,		2,		".i");
+	roottable.SquirrelFunc("defaultLogicalKeys",	defaultLogicalKeys,		2,		".b");
+	roottable.SquirrelFunc("getLogicalKey",			getLogicalKey,			2,		".i");
 }
