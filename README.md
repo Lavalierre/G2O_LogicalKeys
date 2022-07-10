@@ -36,7 +36,7 @@ GAME_LAME_HEAL
 ## New functions
 ``bool bingLogicalKey(int logicalKeyID, int keyID, [int additionalKeyID])`` - rebinds the logical key with new given physical keys. ``additionalKeyID`` is optional. Returns ``true``, if key is successfully binded.
 
-``void unbindLogicalKey(int logicalKeyID)`` - unbind all physical keys from the logical key. Returns ``true``, if key is successfully unbinded.
+``bool unbindLogicalKey(int logicalKeyID)`` - unbind all physical keys from the logical key. Returns ``true``, if key is successfully unbinded.
 
 ``array[] getLogicalKey(int logicalKeyID)`` - get all binded physical keys to the given logical key. Return ``null`` if the key has no binding.
 
