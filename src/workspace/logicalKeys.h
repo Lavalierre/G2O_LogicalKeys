@@ -1,3 +1,3 @@
 #pragma once
 
-void InitLogicalKeys();
+void InitLogicalKeys(Sqrat::RootTable);

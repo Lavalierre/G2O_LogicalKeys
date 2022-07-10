@@ -1,12 +1,7 @@
 #include "pch.h"
 #include "logicalKeys.h"
 
-std::map <std::string, int> m_OPT_KEY_MAP;
-
-void AddOptKeyValue(std::string key, int value)
-{
-	m_OPT_KEY_MAP.insert(std::pair<std::string, int>(key, value));
-}
+std::map <std::string, int> m_OPT_KEY_MAP;									// Storage of config keys
 
 std::string getConfigKeyByLogical(int logicalKey)
 {
@@ -30,6 +25,12 @@ int getLogicalKeyByConfig(std::string configKey)
 	return -1;
 }
 
+void RegisterLogicalKey(std::string keyName, std::string configKey, int gameKey)
+{
+	SqRegisterValue(SqModule::vm, keyName.c_str(), gameKey);				// Registering logical key as global variable
+	m_OPT_KEY_MAP.insert(std::pair<std::string, int>(configKey, gameKey));	// Binding config key to logical key
+}
+
 //--------------------------------------------------------------------------------
 
 SQInteger bindLogicalKey(HSQUIRRELVM vm)
@@ -38,9 +39,9 @@ SQInteger bindLogicalKey(HSQUIRRELVM vm)
 	if (top > 4)
 		return sq_throwerror(vm, "wrong number of parameters");
 
-	SQInteger logicalKey;
-	SQInteger gameKey = 0;
-	SQInteger addGameKey = 0;
+	SQInteger logicalKey	= 0;
+	SQInteger gameKey		= 0;
+	SQInteger addGameKey	= 0;
 
 	sq_getinteger(vm, 2, &logicalKey);
 	sq_getinteger(vm, 3, &gameKey);
@@ -64,9 +65,11 @@ SQInteger bindLogicalKey(HSQUIRRELVM vm)
 			zoptions->WriteRaw("KEYS", configKey.c_str(), controlValueList.GetArray(), controlValueList.GetNumInList() << 1, FALSE);
 			zinput->BindKeys(0);
 		}
+    
 		return 1;
 	}
 
+	sq_pushbool(vm, FALSE);
 	return 0;
 }
 
@@ -87,6 +90,7 @@ SQInteger unbindLogicalKey(HSQUIRRELVM vm)
 		return 1;
 	}
 
+	sq_pushbool(vm, FALSE);
 	return 0;
 }
 
@@ -97,7 +101,7 @@ SQInteger defaultLogicalKeys(HSQUIRRELVM vm)
 
 	for (auto it = m_OPT_KEY_MAP.begin(); it != m_OPT_KEY_MAP.end(); it++)
 		zoptions->RemoveEntry("KEYS", it->first.c_str());
-
+	
 	zinput->BindKeys(alternative);
 
 	return 1;
@@ -124,10 +128,11 @@ SQInteger getLogicalKey(HSQUIRRELVM vm)
 		return 1;
 	}
 
+	sq_pushnull(vm);
 	return 0;
 }
 
-void InitLogicalKeys()
+void InitLogicalKeys(Sqrat::RootTable roottable)
 {
 	using namespace SqModule;
 
