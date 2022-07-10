@@ -202,8 +202,8 @@ void InitLogicalKeys()
 	AddOptKeyValue("keyShowMap",				GAME_SCREEN_MAP);
 
 	// Registering squirrel functions
-	roottable.SquirrelFunc("bindLogicalKey",		bindLogicalKey);
-	roottable.SquirrelFunc("unbindLogicalKey",		unbindLogicalKey);
-	roottable.SquirrelFunc("defaultLogicalKeys",	defaultLogicalKeys);
-	roottable.SquirrelFunc("getLogicalKey",			getLogicalKey);
+	roottable.SquirrelFunc("bindLogicalKey",	bindLogicalKey);
+	roottable.SquirrelFunc("unbindLogicalKey",	unbindLogicalKey);
+	roottable.SquirrelFunc("defaultLogicalKeys",defaultLogicalKeys);
+	roottable.SquirrelFunc("getLogicalKey",		getLogicalKey);
 }
