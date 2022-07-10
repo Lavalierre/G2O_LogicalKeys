@@ -30,14 +30,9 @@ int getLogicalKeyByConfig(std::string configKey)
 
 SQInteger bindLogicalKey(HSQUIRRELVM vm)
 {
-	int iArgs = sq_gettop(vm) - 1;
-	if (iArgs < 2 && iArgs > 3)
-		return sq_throwerror(vm, "(bindLogicalKey) wrong number of parameters, expecting 2");
-
-	if (sq_gettype(vm, 2) != OT_INTEGER)
-		return sq_throwerror(vm, "(bindLogicalKey) wrong type of parameter 1, expecting 'integer'");
-	if (sq_gettype(vm, 3) != OT_INTEGER)
-		return sq_throwerror(vm, "(bindLogicalKey) wrong type of parameter 2, expecting 'integer'");
+	SQInteger top = sq_gettop(vm);
+	if (top > 4)
+		return sq_throwerror(vm, "wrong number of parameters");
 
 	SQInteger logicalKey;
 	SQInteger gameKey = 0;
@@ -46,7 +41,7 @@ SQInteger bindLogicalKey(HSQUIRRELVM vm)
 	sq_getinteger(vm, 2, &logicalKey);
 	sq_getinteger(vm, 3, &gameKey);
 
-	if (sq_gettype(vm, 4) == OT_INTEGER)
+	if (top == 4)
 		sq_getinteger(vm, 4, &addGameKey);
 
 	if ((int)logicalKey >= GAME_UP && (int)logicalKey <= GAME_LAME_HEAL)
@@ -69,15 +64,8 @@ SQInteger bindLogicalKey(HSQUIRRELVM vm)
 
 SQInteger unbindLogicalKey(HSQUIRRELVM vm)
 {
-	int iArgs = sq_gettop(vm) - 1;
-	if (iArgs != 1)
-		return sq_throwerror(vm, "(unbindLogicalKey) wrong number of parameters, expecting 1");
-
-	if (sq_gettype(vm, -1) != OT_INTEGER)
-		return sq_throwerror(vm, "(unbindLogicalKey) wrong type of parameter 1, expecting 'integer'");
-
 	SQInteger logicalKey;
-	sq_getinteger(vm, -1, &logicalKey);
+	sq_getinteger(vm, 2, &logicalKey);
 
 	if ((int)logicalKey >= GAME_UP && (int)logicalKey <= GAME_LAME_HEAL)
 	{
@@ -92,13 +80,6 @@ SQInteger unbindLogicalKey(HSQUIRRELVM vm)
 
 SQInteger defaultLogicalKeys(HSQUIRRELVM vm)
 {
-	int iArgs = sq_gettop(vm) - 1;
-	if (iArgs != 1)
-		return sq_throwerror(vm, "(defaultLogicalKeys) wrong number of parameters, expecting 1");
-
-	if (sq_gettype(vm, -1) != OT_BOOL)
-		return sq_throwerror(vm, "(defaultLogicalKeys) wrong type of parameter 1, expecting 'bool'");
-
 	SQBool alternative;
 	sq_getbool(vm, -1, &alternative);
 
@@ -110,15 +91,8 @@ SQInteger defaultLogicalKeys(HSQUIRRELVM vm)
 
 SQInteger getLogicalKey(HSQUIRRELVM vm)
 {
-	int iArgs = sq_gettop(vm) - 1;
-	if (iArgs != 1)
-		return sq_throwerror(vm, "(getLogicalKey) wrong number of parameters, expecting 1");
-
-	if (sq_gettype(vm, -1) != OT_INTEGER)
-		return sq_throwerror(vm, "(getLogicalKey) wrong type of parameter 1, expecting 'integer'");
-
 	SQInteger logicalKey;
-	sq_getinteger(vm, -1, &logicalKey);
+	sq_getinteger(vm, 2, &logicalKey);
 
 	if ((int)logicalKey >= GAME_UP && (int)logicalKey <= GAME_LAME_HEAL)
 	{
@@ -202,8 +176,8 @@ void InitLogicalKeys()
 	AddOptKeyValue("keyShowMap",				GAME_SCREEN_MAP);
 
 	// Registering squirrel functions
-	roottable.SquirrelFunc("bindLogicalKey",	bindLogicalKey);
-	roottable.SquirrelFunc("unbindLogicalKey",	unbindLogicalKey);
-	roottable.SquirrelFunc("defaultLogicalKeys",defaultLogicalKeys);
-	roottable.SquirrelFunc("getLogicalKey",		getLogicalKey);
+	roottable.SquirrelFunc("bindLogicalKey", bindLogicalKey, -3, ".iii");
+	roottable.SquirrelFunc("unbindLogicalKey", unbindLogicalKey, 2, ".i");
+	roottable.SquirrelFunc("defaultLogicalKeys", defaultLogicalKeys, 2, ".b");
+	roottable.SquirrelFunc("getLogicalKey", getLogicalKey, 2, ".i");
 }
