@@ -87,6 +87,8 @@ SQInteger defaultLogicalKeys(HSQUIRRELVM vm)
 		zoptions->RemoveEntry("KEYS", it->first.c_str());
 
 	zinput->BindKeys(alternative);
+
+	return 1;
 }
 
 SQInteger getLogicalKey(HSQUIRRELVM vm)
