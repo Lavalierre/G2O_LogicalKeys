@@ -30,24 +30,24 @@ int getLogicalKeyByConfig(std::string configKey)
 
 SQInteger bindLogicalKey(HSQUIRRELVM vm)
 {
-	int iArgs = SqModule::api->gettop(vm) - 1;
+	int iArgs = sq_gettop(vm) - 1;
 	if (iArgs < 2 && iArgs > 3)
-		return SqModule::api->throwerror(vm, "(bindLogicalKey) wrong number of parameters, expecting 2");
+		return sq_throwerror(vm, "(bindLogicalKey) wrong number of parameters, expecting 2");
 
-	if (SqModule::api->gettype(vm, 2) != OT_INTEGER)
-		return SqModule::api->throwerror(vm, "(bindLogicalKey) wrong type of parameter 1, expecting 'integer'");
-	if (SqModule::api->gettype(vm, 3) != OT_INTEGER)
-		return SqModule::api->throwerror(vm, "(bindLogicalKey) wrong type of parameter 2, expecting 'integer'");
+	if (sq_gettype(vm, 2) != OT_INTEGER)
+		return sq_throwerror(vm, "(bindLogicalKey) wrong type of parameter 1, expecting 'integer'");
+	if (sq_gettype(vm, 3) != OT_INTEGER)
+		return sq_throwerror(vm, "(bindLogicalKey) wrong type of parameter 2, expecting 'integer'");
 
 	SQInteger logicalKey;
 	SQInteger gameKey = 0;
 	SQInteger addGameKey = 0;
 
-	SqModule::api->getinteger(vm, 2, &logicalKey);
-	SqModule::api->getinteger(vm, 3, &gameKey);
+	sq_getinteger(vm, 2, &logicalKey);
+	sq_getinteger(vm, 3, &gameKey);
 
-	if (SqModule::api->gettype(vm, 4) == OT_INTEGER)
-		SqModule::api->getinteger(vm, 4, &addGameKey);
+	if (sq_gettype(vm, 4) == OT_INTEGER)
+		sq_getinteger(vm, 4, &addGameKey);
 
 	if ((int)logicalKey >= GAME_UP && (int)logicalKey <= GAME_LAME_HEAL)
 	{
@@ -69,15 +69,15 @@ SQInteger bindLogicalKey(HSQUIRRELVM vm)
 
 SQInteger unbindLogicalKey(HSQUIRRELVM vm)
 {
-	int iArgs = SqModule::api->gettop(vm) - 1;
+	int iArgs = sq_gettop(vm) - 1;
 	if (iArgs != 1)
-		return SqModule::api->throwerror(vm, "(unbindLogicalKey) wrong number of parameters, expecting 1");
+		return sq_throwerror(vm, "(unbindLogicalKey) wrong number of parameters, expecting 1");
 
-	if (SqModule::api->gettype(vm, -1) != OT_INTEGER)
-		return SqModule::api->throwerror(vm, "(unbindLogicalKey) wrong type of parameter 1, expecting 'integer'");
+	if (sq_gettype(vm, -1) != OT_INTEGER)
+		return sq_throwerror(vm, "(unbindLogicalKey) wrong type of parameter 1, expecting 'integer'");
 
 	SQInteger logicalKey;
-	SqModule::api->getinteger(vm, -1, &logicalKey);
+	sq_getinteger(vm, -1, &logicalKey);
 
 	if ((int)logicalKey >= GAME_UP && (int)logicalKey <= GAME_LAME_HEAL)
 	{
@@ -92,15 +92,15 @@ SQInteger unbindLogicalKey(HSQUIRRELVM vm)
 
 SQInteger defaultLogicalKeys(HSQUIRRELVM vm)
 {
-	int iArgs = SqModule::api->gettop(vm) - 1;
+	int iArgs = sq_gettop(vm) - 1;
 	if (iArgs != 1)
-		return SqModule::api->throwerror(vm, "(defaultLogicalKeys) wrong number of parameters, expecting 1");
+		return sq_throwerror(vm, "(defaultLogicalKeys) wrong number of parameters, expecting 1");
 
-	if (SqModule::api->gettype(vm, -1) != OT_BOOL)
-		return SqModule::api->throwerror(vm, "(defaultLogicalKeys) wrong type of parameter 1, expecting 'bool'");
+	if (sq_gettype(vm, -1) != OT_BOOL)
+		return sq_throwerror(vm, "(defaultLogicalKeys) wrong type of parameter 1, expecting 'bool'");
 
 	SQBool alternative;
-	SqModule::api->getbool(vm, -1, &alternative);
+	sq_getbool(vm, -1, &alternative);
 
 	for (auto it = m_OPT_KEY_MAP.begin(); it != m_OPT_KEY_MAP.end(); it++)
 		zoptions->RemoveEntry("KEYS", it->first.c_str());
@@ -110,15 +110,15 @@ SQInteger defaultLogicalKeys(HSQUIRRELVM vm)
 
 SQInteger getLogicalKey(HSQUIRRELVM vm)
 {
-	int iArgs = SqModule::api->gettop(vm) - 1;
+	int iArgs = sq_gettop(vm) - 1;
 	if (iArgs != 1)
-		return SqModule::api->throwerror(vm, "(getLogicalKey) wrong number of parameters, expecting 1");
+		return sq_throwerror(vm, "(getLogicalKey) wrong number of parameters, expecting 1");
 
-	if (SqModule::api->gettype(vm, -1) != OT_INTEGER)
-		return SqModule::api->throwerror(vm, "(getLogicalKey) wrong type of parameter 1, expecting 'integer'");
+	if (sq_gettype(vm, -1) != OT_INTEGER)
+		return sq_throwerror(vm, "(getLogicalKey) wrong type of parameter 1, expecting 'integer'");
 
 	SQInteger logicalKey;
-	SqModule::api->getinteger(vm, -1, &logicalKey);
+	sq_getinteger(vm, -1, &logicalKey);
 
 	if ((int)logicalKey >= GAME_UP && (int)logicalKey <= GAME_LAME_HEAL)
 	{
@@ -126,11 +126,11 @@ SQInteger getLogicalKey(HSQUIRRELVM vm)
 		controlValues.EmptyList();
 		zinput->GetBinding(logicalKey, controlValues);
 
-		SqModule::api->newarray(vm, 0);
+		sq_newarray(vm, 0);
 		for (int i = 0; i < controlValues.GetNumInList(); i++)
 		{
-			SqModule::api->pushinteger(vm, controlValues[i]);
-			SqModule::api->arrayappend(vm, -2);
+			sq_pushinteger(vm, controlValues[i]);
+			sq_arrayappend(vm, -2);
 		}
 
 		return 1;
